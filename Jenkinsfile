@@ -2,7 +2,7 @@
 pipeline {
 
   environment {
-    dockerimagename = "rahatk8s/nodeapp"
+    dockerimagename = "rahat6/rahatk8s-nodeapp:latest"
     dockerImage = ""
   }
 
