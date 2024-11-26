@@ -1,7 +1,6 @@
-
 pipeline {
-
-  environment {
+    
+    environment {
     dockerimagename = "rahat6/rahatk8s-nodeapp:latest"
     dockerImage = ""
   }
@@ -15,32 +14,30 @@ pipeline {
         git 'https://github.com/rahatdevops/nodeapp_test.git'
       }
     }
-
-    stage('Build image') {
-      steps{
-        script {
-          dockerImage = docker.build dockerimagename
+    stage("Docker build"){
+        steps {
+        sh 'docker version'
+        sh 'docker build -t rahatk8s-nodeapp .'
+        sh 'docker image list'
+        sh 'docker tag rahatk8s-nodeapp rahat6/rahatk8s-nodeapp:latest'
+     } 
+    }
+    
+    stage("Login Docker Hub") {
+            steps {
+    withCredentials([string(credentialsId: 'dockerhublogin', variable: 'PASSWORD')]) {
+        sh 'docker login -u rahat6 -p $PASSWORD'
+        sh 'docker push rahat6/rahatk8s-nodeapp:latest'
         }
+        
       }
     }
-
-    stage('Pushing Image') {
-      environment {
-               registryCredential = 'dockerhublogin'
-           }
-      steps{
-        script {
-          docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
-            dockerImage.push("latest")
-          }
-        }
-      }
-    }
+    
 
     stage('Deploying App to Kubernetes') {
       steps {
         script {
-          kubernetesDeploy(configs: "deploymentservice.yml", kubeconfigId: "kubernetes")
+          kubernetesDeploy (configs: 'deploymentservice.yml', kubeConfig: [path: ''], kubeconfigId: 'kubernetes')
         }
       }
     }
